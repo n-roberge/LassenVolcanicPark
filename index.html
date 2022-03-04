@@ -1,0 +1,381 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Lassen Volcanic National Park</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 96.65%;
+        width: 100%;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.21/esri/themes/light/main.css">
+    <link rel="stylesheet" href = "css\style.css">
+
+    <script src="https://js.arcgis.com/4.21/"></script>
+
+    <script>
+        require([
+            "esri/config", 
+            "esri/layers/FeatureLayer",
+            "esri/Map", 
+            "esri/views/MapView",
+            "esri/widgets/Home",
+            "esri/widgets/Locate", 
+            "esri/views/ui/UI",
+            "esri/widgets/BasemapToggle",
+            "esri/widgets/Editor",
+            "esri/widgets/LayerList",
+            "esri/widgets/Search",
+            "esri/widgets/Legend",
+            "esri/widgets/ScaleBar",
+            "esri/widgets/Bookmarks",
+            "esri/support/actions/ActionButton",
+            "esri/widgets/Expand"
+
+        ], function(esriConfig, FeatureLayer, Map, MapView, Home, Locate, UI, BasemapToggle, 
+            Editor, LayerList, Search, Legend, ScaleBar, Bookmarks, ActionButton, Expand) {
+
+            esriConfig.apiKey = "AAPKa1c9dfa740ab48f7972eb24219281e93vR1Ec-42O7Yj2jLaxKwJnGrmiPI5fl2KeRC-mO3AxzoVvokdIZo-AigJPzKERvhw";
+
+            ////////// Popups and renderers construction /////////////////
+
+            //Hiking Trails
+            const popupHikingtrails = {
+              "title": "Hiking Trail",
+              "content": "<b>Name:</b> {TrailName}<br><b>Description:</b> {Descript}<br>\
+              <b>Surface: </b> {TrailSurfa}<br><b>Handicap Accessible:</b> {Accessibil}"
+            };
+
+            //Trailheads
+            const popupTrailheads = {
+              "title": "Trailhead",
+              "content": "<b>Name:</b> {POINAME}<br><b>Description:</b> {POIDESC}<br>\
+              <b>Open to the Public: </b> {OPENTOPUBLIC}<br><b>Seasonal:</b> {SEASONAL}"
+            };
+
+            const trailheadRend = {
+              "type": "simple",
+              "symbol": {
+                "type": "picture-marker",
+                "url": "img/trailhead.png",
+                "width": "20px",
+                "height": "20px"
+              }
+            };
+            
+            //Restrooms
+            const popupRestrooms = {
+              "title": "Restroom",
+              "content": "<b>Name:</b> {POINAME}<br><b>Description:</b> {POIDESC}<br>\
+              <b>Open to the Public: </b> {OPENTOPUBLIC}<br><b>Seasonal:</b> {SEASONAL}"
+            };
+
+            const restroomRend = {
+              "type": "simple",
+              "symbol": {
+                "type": "picture-marker",
+                "url": "img/restrooms.png",
+                "width": "20px",
+                "height": "20px"
+              }
+            };
+
+            //Campgrounds
+            const popupCampgrounds = {
+              "title": "Campground",
+              "content": "<b>Name:</b> {POINAME}<br>\
+              <b>Open to the Public: </b> {OPENTOPUBLIC}<br><b>Seasonal:</b> {SEASONAL}"
+            };
+
+            const campgroundRend = {
+              "type": "simple",
+              "symbol": {
+                "type": "picture-marker",
+                "url": "img/campground.png",
+                "width": "20px",
+                "height": "20px"
+              }
+            };
+
+            //POIs
+            const poiRend = {
+              "type": "simple",
+              "symbol": {
+                "type": "picture-marker",
+                "url": "img/poi.png",
+                "width": "20px",
+                "height": "20px"
+              }
+            };
+
+            const popupPoi = {
+              "title": "Point of Interest",
+              "content": "<b>Name:</b> {POINAME}<br><b>Description:</b> {POIDESC}"
+            };
+
+            ////////// Create layers and add to map ///////////
+
+            // Trailheads
+            const trailheads = new FeatureLayer({
+                url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/trailhead/FeatureServer/0",
+                renderer: trailheadRend,
+                popupTemplate: popupTrailheads,  
+                title: "Trailheads"
+              });
+
+            trailheads.featureReduction = {
+              type: "cluster",
+              clusterRadius: 200,
+              clusterMaxSize: "32px",
+              clusterMinSize: "20px"
+            };
+
+            //hiking trails feature layer
+            const hikingtrails = new FeatureLayer({
+              portalItem: {
+                id: "cf9c1fd1497e4587adb41b754e8d6a90"
+              },
+              popupTemplate: popupHikingtrails,
+              title: "Hiking Trails"
+              });
+
+            //restrooms feature layer
+            const restrooms = new FeatureLayer({
+                url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/restroom/FeatureServer/0",
+                renderer: restroomRend,
+                popupTemplate: popupRestrooms,
+                title: "Restrooms"
+              });
+
+            restrooms.featureReduction = {
+              type: "cluster",
+              clusterRadius: 200,
+              clusterMaxSize: "32px",
+              clusterMinSize: "20px"
+            };
+
+            //campgrounds feature layer
+            const campgrounds = new FeatureLayer({
+                url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/campground/FeatureServer/0",
+                renderer: campgroundRend,
+                popupTemplate: popupCampgrounds,
+                title: "Campgrounds"
+              });
+
+            campgrounds.featureReduction = {
+              type: "cluster",
+              clusterRadius: 100,
+              clusterMaxSize: "32px",
+              clusterMinSize: "20px"
+            };
+
+            //poi feature layer
+            const pois = new FeatureLayer({
+                url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/poi/FeatureServer/0",
+                renderer: poiRend,
+                title: "Points of Interest",
+                popupTemplate: popupPoi
+              });
+
+            pois.featureReduction = {
+              type: "cluster",
+              clusterRadius: 100,
+              clusterMaxSize: "32px",
+              clusterMinSize: "20px"
+            };
+
+            ////////// Create editor to add POIs //////////////
+            const poiInfo = {
+              layer: pois,
+              fieldConfig: [{
+                name: "POINAME",
+                label: "Point of Interest Name"
+              }, {
+                name: "POIDESC",
+                label: "Description"
+              }, {
+                name: "POICAT",
+                label: "Category"
+              }]
+            };
+            
+
+            ////////// Create map, view, and add widgets ///////////////
+            const map = new Map({
+                basemap: "arcgis-topographic",
+                layers: [hikingtrails, restrooms, campgrounds, pois, trailheads]
+            });
+
+            const view = new MapView({
+                map: map,
+                center: [-121.42670, 40.49061], 
+                zoom: 12.85, 
+                container: "viewDiv" 
+            });
+            
+            const homeBtn = new Home({
+              view: view
+            });
+
+            view.ui.add(homeBtn, "top-left")
+
+            //show location
+            const locate = new Locate({
+              view: view,
+              useHeadingEnabled: false,
+              goToOverride: function(view, options) {
+                options.target.scale = 1500;
+                return view.goTo(options.target);
+              }
+            });
+            view.ui.add(locate, "top-left");
+
+            // toggle between basemaps
+            const basemapToggle = new BasemapToggle({
+              view: view,
+              nextBasemap: "arcgis-imagery"
+            });
+            view.ui.add(basemapToggle,"bottom-left");
+
+            const editor = new Editor({
+              view: view,
+              fieldConfig: [poiInfo],
+              snappingOptions: {
+                enabled: true,
+                selfEnable: true,
+                featureEnabled: true,
+                featureSources: [{
+                  layer: pois,
+                }]
+              }
+            });
+
+            //search bar
+            const searchWidget = new Search({
+              view: view
+            });
+            view.ui.add(searchWidget, {
+              position: "top-right",
+              index: 2
+            });
+
+            //legend
+            const layerList = new LayerList({
+              view: view,
+              style: "card",
+              listItemCreatedFunction: (event) => {
+                const item = event.item;
+                if (item.layer.type != "group") {
+                  // don't show legend twice
+                  item.panel = {
+                    content: "legend",
+                    open: true
+                  };
+                }
+              }
+            });
+
+            //scale bar
+            const scaleBar = new ScaleBar({
+              view: view,
+              unit: "dual"
+            });
+
+            // Add the widget to the bottom left corner of the view
+            view.ui.add(scaleBar, {
+              position: "bottom-left"
+            });
+
+            // create expandable menus for legend and editor
+            const legendExpand = new Expand ({
+              expandIconClass: "esri-icon-legend",
+              expandTooltip: "Show legend",
+              expanded: false,
+              view: view,
+              content: layerList
+            });
+
+            const editorExpand = new Expand ({
+              expandIconClass: "esri-icon-applications",
+              expandTooltip: "Add point of interest",
+              expanded: false,
+              view: view,
+              content: editor
+            });
+          
+            const bookmarks = new Bookmarks({
+              view: view,
+              // allows bookmarks to be added, edited, or deleted
+              editingEnabled: true
+            });
+
+            const bkExpand = new Expand({
+              view: view,
+              content: bookmarks,
+              expanded: false
+            });
+
+            view.ui.add(legendExpand, "top-right");
+            view.ui.add(bkExpand, "top-right");
+            view.ui.add(editorExpand, "top-left");
+
+            // Get the modal
+            var modal = document.getElementById("myModal");
+
+            // Get the button that opens the modal
+            var btn = document.getElementById("myBtn");
+
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+
+            // When the user clicks on the button, open the modal
+            btn.onclick = function() {
+              modal.style.display = "block";
+            }
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function() {
+              modal.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+              if (event.target == modal) {
+                modal.style.display = "none";
+              }
+            } 
+    });
+    </script>
+
+  </head>
+  <body>
+    <div class="header" style="background-image: url('img/customTop.png');">
+      <a href="https://www.nps.gov/index.htm"><img src="img\NPS-Transparent-Logo.png" height="75px" align="left" style="margin-left: 20px;"/></a>
+      <h1><a href="https://www.nps.gov/lavo/index.htm" style="color: white; text-decoration: none;">Lassen Volcanic National Park</a></h1>
+    </div> 
+    <div id="viewDiv">
+       <!-- Trigger/Open The Modal -->
+      <button id="myBtn" src="esri-icon-description">Information</button>
+      <!-- The Modal -->
+      <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <p><b>Welcome to Lassen Volcanic National Park. Here you can explore our trails and campsites.
+             You can also add points of interests for yourself and other guests of the park. You can begin by
+            clicking the "Add point of interest" button <img src="img/applications.PNG" style="border: 
+            0; display:inline; vertical-align: middle; margin: 0 2px; box-shadow: none" alt="Add point of interest">
+             on the left and follow the prompts.</b>
+          </p>
+        </div>
+      </div> 
+    </div>
+  </body>
+</html>
